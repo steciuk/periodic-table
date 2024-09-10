@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
   selector: 'app-root',
   standalone: true,
   imports: [MatButtonModule],
-  template: ` <h1>{{ title }}</h1>
+  template: ` <h1 class="underline">{{ title }}</h1>
     <button mat-button>Click me!</button>`,
 })
 export class AppComponent {
