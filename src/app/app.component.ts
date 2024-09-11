@@ -1,13 +1,20 @@
 import { Component } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
+import { ElementsTableComponent } from './components/elements-table.component';
+import { ElementsService } from './services/elements.service';
+import { ElementsProviderMockService } from './services/elements-provider/elements-provider-mock.service';
+import { ElementsProviderService } from './services/elements-provider/elements-provider.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [MatButtonModule],
-  template: ` <h1 class="underline">{{ title }}</h1>
-    <button mat-button>Click me!</button>`,
+  imports: [ElementsTableComponent],
+  providers: [
+    ElementsService,
+    {
+      provide: ElementsProviderService,
+      useClass: ElementsProviderMockService,
+    },
+  ],
+  template: `<app-elements-table />`,
 })
-export class AppComponent {
-  title = 'Hello, World';
-}
+export class AppComponent {}
