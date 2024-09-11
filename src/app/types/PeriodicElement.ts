@@ -1,6 +1,7 @@
 export type PeriodicElement = {
   name: string;
   atomic_mass: number;
+  category: string;
   number: number;
   period: number;
   group: number;
@@ -11,9 +12,14 @@ export type PeriodicElement = {
   symbol: string;
   xpos: number;
   ypos: number;
-  wxpos: number;
-  wypos: number;
+  image: Image;
 };
+
+export interface Image {
+  title: string;
+  url: string;
+  attribution: string;
+}
 
 export enum Phase {
   Gas = 'Gas',

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ElementsTableComponent } from './components/table/elements-table.component';
+import { ElementsTableComponent } from './components/elements-table/elements-table.component';
 import { ElementsService } from './services/elements.service';
 import { ElementsProviderMockService } from './services/elements-provider/elements-provider-mock.service';
 import { ElementsProviderService } from './services/elements-provider/elements-provider.service';

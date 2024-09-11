@@ -14,6 +14,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { ElementsTableCellContentComponent } from './elements-table-cell.component';
 import { PeriodicElementFilterMatches } from './types';
+import { MatDialog } from '@angular/material/dialog';
+import { ElementDetailsDialogComponent } from '../element-details-dialog.component';
 
 const FILTER_DEBOUNCE_TIME = 2000;
 
@@ -82,12 +84,17 @@ const FILTER_DEBOUNCE_TIME = 2000;
       </ng-container>
 
       <mat-header-row *matHeaderRowDef="displayedColumns" />
-      <mat-row *matRowDef="let row; columns: displayedColumns" />
+      <mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        (click)="onRowClick(row.element)"
+        class="cursor-pointer"
+      />
     </mat-table>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ElementsTableComponent extends BaseComponent {
   private readonly elementsService = inject(ElementsService);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly filterValue$ = new BehaviorSubject('');
   protected readonly displayedColumns: (keyof PeriodicElement)[] = [
@@ -145,5 +152,11 @@ export class ElementsTableComponent extends BaseComponent {
 
   protected onFilterValueChange(value: string) {
     this.filterValue$.next(value);
+  }
+
+  protected onRowClick(element: PeriodicElement) {
+    this.dialog.open(ElementDetailsDialogComponent, {
+      data: element,
+    });
   }
 }
