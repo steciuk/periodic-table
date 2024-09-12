@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Injector,
+} from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { BaseComponent } from '../base.component';
 import { ElementsService } from '../../services/elements.service';
@@ -15,7 +20,7 @@ import { CommonModule } from '@angular/common';
 import { ElementsTableCellContentComponent } from './elements-table-cell.component';
 import { PeriodicElementFilterMatches } from './types';
 import { MatDialog } from '@angular/material/dialog';
-import { ElementDetailsDialogComponent } from '../element-details-dialog.component';
+import { ElementDialogComponent } from '../element-dialog.component';
 
 const FILTER_DEBOUNCE_TIME = 2000;
 
@@ -95,6 +100,7 @@ const FILTER_DEBOUNCE_TIME = 2000;
 export class ElementsTableComponent extends BaseComponent {
   private readonly elementsService = inject(ElementsService);
   private readonly dialog = inject(MatDialog);
+  private readonly injector = inject(Injector);
 
   protected readonly filterValue$ = new BehaviorSubject('');
   protected readonly displayedColumns: (keyof PeriodicElement)[] = [
@@ -104,7 +110,7 @@ export class ElementsTableComponent extends BaseComponent {
     'phase',
     'atomic_mass',
   ];
-  protected readonly dataSource$ = this.elementsService.get$().pipe(
+  protected readonly dataSource$ = this.elementsService.getAll$().pipe(
     combineLatestWith(
       this.filterValue$.pipe(
         debounceTime(FILTER_DEBOUNCE_TIME),
@@ -155,8 +161,9 @@ export class ElementsTableComponent extends BaseComponent {
   }
 
   protected onRowClick(element: PeriodicElement) {
-    this.dialog.open(ElementDetailsDialogComponent, {
+    this.dialog.open(ElementDialogComponent, {
       data: element,
+      injector: this.injector,
     });
   }
 }

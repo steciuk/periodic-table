@@ -1,4 +1,7 @@
+// Only properties that are used in the app are included in the type.
+// Actual objects have more properties.
 export type PeriodicElement = {
+  id: number;
   name: string;
   atomic_mass: number;
   category: string;

@@ -22,7 +22,7 @@ import { MatInputModule } from '@angular/material/input';
     MatIconModule,
   ],
   template: `
-    <mat-form-field>
+    <mat-form-field appearance="outline">
       <mat-label>{{ label }}</mat-label>
       <input
         matInput

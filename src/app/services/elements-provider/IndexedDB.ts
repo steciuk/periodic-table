@@ -8,7 +8,7 @@ class IndexedDB extends Dexie {
   constructor() {
     super('AppDB');
     this.version(1).stores({
-      elements: 'number',
+      elements: '++id',
     });
   }
 }

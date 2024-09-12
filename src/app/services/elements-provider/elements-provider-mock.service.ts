@@ -5,7 +5,9 @@ import { delay, map, take } from 'rxjs';
 import { indexedDB, rx } from './IndexedDB';
 import { ElementsProviderService } from './elements-provider.service';
 
+// TODO: Reenable the delay
 const MOCK_SERVER_DELAY = 1000;
+// const MOCK_SERVER_DELAY = 0;
 
 @Injectable()
 export class ElementsProviderMockService extends ElementsProviderService {
@@ -28,14 +30,18 @@ export class ElementsProviderMockService extends ElementsProviderService {
     });
   }
 
+  get$(id: number) {
+    return rx(() => indexedDB.elements.get(id)).pipe(delay(MOCK_SERVER_DELAY));
+  }
+
   getAll$() {
-    // Return an observable that emits the elements from the database
     return rx(() => indexedDB.elements.toArray()).pipe(
       delay(MOCK_SERVER_DELAY)
     );
   }
 
   update(element: PeriodicElement) {
+    // TODO: Data validation as this simulates backend
     indexedDB.elements.put(element);
   }
 }
