@@ -3,161 +3,136 @@ import {
   Component,
   inject,
   Injector,
+  Input,
+  OnInit,
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
-import { BaseComponent } from '../base.component';
 import { ElementsService } from '../../services/elements.service';
 import { PeriodicElement } from '../../types/PeriodicElement';
-import { ClearableInputComponent } from '../clearable-input.component';
-import {
-  BehaviorSubject,
-  combineLatestWith,
-  debounceTime,
-  map,
-  startWith,
-} from 'rxjs';
+import { combineLatestWith, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ElementsTableCellContentComponent } from './elements-table-cell.component';
-import { PeriodicElementFilterMatches } from './types';
 import { MatDialog } from '@angular/material/dialog';
 import { ElementDialogComponent } from '../element-dialog.component';
-
-const FILTER_DEBOUNCE_TIME = 2000;
+import { FindMatchesService } from '../../services/find-matches.service';
+import { FilterMatches } from '../../types/utils';
 
 @Component({
   selector: 'app-elements-table',
   standalone: true,
-  imports: [
-    MatTableModule,
-    ClearableInputComponent,
-    CommonModule,
-    ElementsTableCellContentComponent,
-  ],
-  template: ` <app-clearable-input
-      label="Filter"
-      (valueChange)="onFilterValueChange($event)"
+  imports: [MatTableModule, CommonModule, ElementsTableCellContentComponent],
+  template: ` <mat-table [dataSource]="dataSource$">
+    <ng-container matColumnDef="number">
+      <mat-header-cell *matHeaderCellDef>Number</mat-header-cell>
+      <mat-cell *matCellDef="let elementWithMatches">
+        <app-elements-table-cell-content
+          [value]="elementWithMatches.element.number"
+          [filterMatch]="elementWithMatches.filterMatches.number"
+        />
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+      <mat-cell *matCellDef="let elementWithMatches">
+        <app-elements-table-cell-content
+          [value]="elementWithMatches.element.name"
+          [filterMatch]="elementWithMatches.filterMatches.name"
+        />
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="symbol">
+      <mat-header-cell *matHeaderCellDef>Symbol</mat-header-cell>
+      <mat-cell *matCellDef="let elementWithMatches">
+        <app-elements-table-cell-content
+          [value]="elementWithMatches.element.symbol"
+          [filterMatch]="elementWithMatches.filterMatches.symbol"
+        />
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="phase">
+      <mat-header-cell *matHeaderCellDef>Phase</mat-header-cell>
+      <mat-cell *matCellDef="let elementWithMatches">
+        <app-elements-table-cell-content
+          [value]="elementWithMatches.element.phase"
+          [filterMatch]="elementWithMatches.filterMatches.phase"
+        />
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="atomic_mass">
+      <mat-header-cell *matHeaderCellDef>Atomic mass</mat-header-cell>
+      <mat-cell *matCellDef="let elementWithMatches">
+        <app-elements-table-cell-content
+          [value]="elementWithMatches.element.atomic_mass"
+          [filterMatch]="elementWithMatches.filterMatches.atomic_mass"
+        />
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns" />
+    <mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      (click)="onRowClick(row.element)"
+      class="cursor-pointer"
     />
-    <mat-table [dataSource]="dataSource$">
-      <ng-container matColumnDef="number">
-        <mat-header-cell *matHeaderCellDef>Number</mat-header-cell>
-        <mat-cell *matCellDef="let elementWithMatches">
-          <app-elements-table-cell-content
-            [value]="elementWithMatches.element.number"
-            [filterMatch]="elementWithMatches.filterMatches.number"
-          />
-        </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="name">
-        <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-        <mat-cell *matCellDef="let elementWithMatches">
-          <app-elements-table-cell-content
-            [value]="elementWithMatches.element.name"
-            [filterMatch]="elementWithMatches.filterMatches.name"
-          />
-        </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="symbol">
-        <mat-header-cell *matHeaderCellDef>Symbol</mat-header-cell>
-        <mat-cell *matCellDef="let elementWithMatches">
-          <app-elements-table-cell-content
-            [value]="elementWithMatches.element.symbol"
-            [filterMatch]="elementWithMatches.filterMatches.symbol"
-          />
-        </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="phase">
-        <mat-header-cell *matHeaderCellDef>Phase</mat-header-cell>
-        <mat-cell *matCellDef="let elementWithMatches">
-          <app-elements-table-cell-content
-            [value]="elementWithMatches.element.phase"
-            [filterMatch]="elementWithMatches.filterMatches.phase"
-          />
-        </mat-cell>
-      </ng-container>
-
-      <ng-container matColumnDef="atomic_mass">
-        <mat-header-cell *matHeaderCellDef>Atomic mass</mat-header-cell>
-        <mat-cell *matCellDef="let elementWithMatches">
-          <app-elements-table-cell-content
-            [value]="elementWithMatches.element.atomic_mass"
-            [filterMatch]="elementWithMatches.filterMatches.atomic_mass"
-          />
-        </mat-cell>
-      </ng-container>
-
-      <mat-header-row *matHeaderRowDef="displayedColumns" />
-      <mat-row
-        *matRowDef="let row; columns: displayedColumns"
-        (click)="onRowClick(row.element)"
-        class="cursor-pointer"
-      />
-    </mat-table>`,
+  </mat-table>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ElementsTableComponent extends BaseComponent {
+export class ElementsTableComponent implements OnInit {
+  @Input() filterValue$?: Observable<string>;
+
   private readonly elementsService = inject(ElementsService);
+  private readonly findMatchesService = inject(FindMatchesService);
   private readonly dialog = inject(MatDialog);
   private readonly injector = inject(Injector);
 
-  protected readonly filterValue$ = new BehaviorSubject('');
-  protected readonly displayedColumns: (keyof PeriodicElement)[] = [
+  protected readonly displayedColumns = [
     'number',
     'name',
     'symbol',
     'phase',
     'atomic_mass',
-  ];
-  protected readonly dataSource$ = this.elementsService.getAll$().pipe(
-    combineLatestWith(
-      this.filterValue$.pipe(
-        debounceTime(FILTER_DEBOUNCE_TIME),
-        // Do not wait for the first value to start filtering
-        startWith('')
+  ] as const satisfies (keyof PeriodicElement)[];
+
+  protected dataSource$: Observable<
+    {
+      element: PeriodicElement;
+      filterMatches: FilterMatches<PeriodicElement>;
+    }[]
+  > = this.elementsService
+    .getAll$()
+    .pipe(
+      map((elements) =>
+        elements.map((element) => ({ element, filterMatches: {} }))
       )
-    ),
-    map(([elements, filterValue]) => {
-      return elements
-        .map(
-          (
-            element
-          ): {
-            element: PeriodicElement;
-            filterMatches: PeriodicElementFilterMatches;
-          } | null => {
-            if (!filterValue) return { element, filterMatches: {} };
+    );
 
-            let matchesFilter = false;
-            const filterMatches: PeriodicElementFilterMatches = {};
+  ngOnInit(): void {
+    if (this.filterValue$ !== undefined) {
+      this.dataSource$ = this.elementsService.getAll$().pipe(
+        combineLatestWith(this.filterValue$),
+        map(([elements, filterValue]) => {
+          const elementsWithMatches = elements.map((element) => ({
+            element,
+            filterMatches: this.findMatchesService.findMatches(
+              element,
+              this.displayedColumns,
+              filterValue
+            ),
+          }));
 
-            for (const key of this.displayedColumns) {
-              const stringValue = element[key]?.toString();
-              if (!stringValue) continue;
-
-              const startIndex = stringValue
-                .toLowerCase()
-                .indexOf(filterValue.toLowerCase());
-              if (startIndex !== -1) {
-                filterMatches[key] = {
-                  stringValue,
-                  startIndex,
-                  endIndex: startIndex + filterValue.length,
-                };
-                matchesFilter = true;
-              }
-            }
-
-            return matchesFilter ? { element, filterMatches } : null;
-          }
-        )
-        .filter((elementWithMatches) => elementWithMatches !== null);
-    })
-  );
-
-  protected onFilterValueChange(value: string) {
-    this.filterValue$.next(value);
+          return filterValue === ''
+            ? elementsWithMatches
+            : elementsWithMatches.filter(
+                (elementWithMatches) =>
+                  Object.keys(elementWithMatches.filterMatches).length > 0
+              );
+        })
+      );
+    }
   }
 
   protected onRowClick(element: PeriodicElement) {

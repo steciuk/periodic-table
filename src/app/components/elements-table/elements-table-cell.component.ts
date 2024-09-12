@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { PeriodicElement } from '../../types/PeriodicElement';
-import { PeriodicElementFilterMatches } from './types';
+import { FilterMatch } from '../../types/utils';
 
 @Component({
   selector: 'app-elements-table-cell-content',
@@ -27,5 +27,5 @@ import { PeriodicElementFilterMatches } from './types';
 })
 export class ElementsTableCellContentComponent {
   @Input({ required: true }) value!: PeriodicElement[keyof PeriodicElement];
-  @Input() filterMatch?: PeriodicElementFilterMatches[keyof PeriodicElement];
+  @Input() filterMatch?: FilterMatch;
 }
