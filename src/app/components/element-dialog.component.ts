@@ -67,7 +67,7 @@ export class ElementDialogComponent extends BaseComponent implements OnInit {
         if (element) {
           // Real update
           this.element = element;
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         }
       });
   }
