@@ -7,25 +7,25 @@ import {
   OnInit,
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
-import { ElementsService } from '../../services/elements.service';
-import { PeriodicElement } from '../../types/PeriodicElement';
+import { ElementsService } from '../services/elements.service';
+import { PeriodicElement } from '../types/PeriodicElement';
 import { combineLatestWith, map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { ElementsTableCellContentComponent } from './elements-table-cell.component';
+import { ElementMarkValueMatchComponent } from './element-mark-value-match.component';
 import { MatDialog } from '@angular/material/dialog';
-import { ElementDialogComponent } from '../element-dialog.component';
-import { FindMatchesService } from '../../services/find-matches.service';
-import { FilterMatches } from '../../types/utils';
+import { ElementDialogComponent } from './element-dialog.component';
+import { FindMatchesService } from '../services/find-matches.service';
+import { FilterMatches } from '../types/utils';
 
 @Component({
   selector: 'app-elements-table',
   standalone: true,
-  imports: [MatTableModule, CommonModule, ElementsTableCellContentComponent],
+  imports: [MatTableModule, CommonModule, ElementMarkValueMatchComponent],
   template: ` <mat-table [dataSource]="dataSource$">
     <ng-container matColumnDef="number">
       <mat-header-cell *matHeaderCellDef>Number</mat-header-cell>
       <mat-cell *matCellDef="let elementWithMatches">
-        <app-elements-table-cell-content
+        <app-element-mark-value-match
           [value]="elementWithMatches.element.number"
           [filterMatch]="elementWithMatches.filterMatches.number"
         />
@@ -35,7 +35,7 @@ import { FilterMatches } from '../../types/utils';
     <ng-container matColumnDef="name">
       <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
       <mat-cell *matCellDef="let elementWithMatches">
-        <app-elements-table-cell-content
+        <app-element-mark-value-match
           [value]="elementWithMatches.element.name"
           [filterMatch]="elementWithMatches.filterMatches.name"
         />
@@ -45,7 +45,7 @@ import { FilterMatches } from '../../types/utils';
     <ng-container matColumnDef="symbol">
       <mat-header-cell *matHeaderCellDef>Symbol</mat-header-cell>
       <mat-cell *matCellDef="let elementWithMatches">
-        <app-elements-table-cell-content
+        <app-element-mark-value-match
           [value]="elementWithMatches.element.symbol"
           [filterMatch]="elementWithMatches.filterMatches.symbol"
         />
@@ -55,7 +55,7 @@ import { FilterMatches } from '../../types/utils';
     <ng-container matColumnDef="phase">
       <mat-header-cell *matHeaderCellDef>Phase</mat-header-cell>
       <mat-cell *matCellDef="let elementWithMatches">
-        <app-elements-table-cell-content
+        <app-element-mark-value-match
           [value]="elementWithMatches.element.phase"
           [filterMatch]="elementWithMatches.filterMatches.phase"
         />
@@ -65,7 +65,7 @@ import { FilterMatches } from '../../types/utils';
     <ng-container matColumnDef="atomic_mass">
       <mat-header-cell *matHeaderCellDef>Atomic mass</mat-header-cell>
       <mat-cell *matCellDef="let elementWithMatches">
-        <app-elements-table-cell-content
+        <app-element-mark-value-match
           [value]="elementWithMatches.element.atomic_mass"
           [filterMatch]="elementWithMatches.filterMatches.atomic_mass"
         />
@@ -106,8 +106,8 @@ export class ElementsTableComponent implements OnInit {
     .getAll$()
     .pipe(
       map((elements) =>
-        elements.map((element) => ({ element, filterMatches: {} }))
-      )
+        elements.map((element) => ({ element, filterMatches: {} })),
+      ),
     );
 
   ngOnInit(): void {
@@ -120,7 +120,7 @@ export class ElementsTableComponent implements OnInit {
             filterMatches: this.findMatchesService.findMatches(
               element,
               this.displayedColumns,
-              filterValue
+              filterValue,
             ),
           }));
 
@@ -128,9 +128,9 @@ export class ElementsTableComponent implements OnInit {
             ? elementsWithMatches
             : elementsWithMatches.filter(
                 (elementWithMatches) =>
-                  Object.keys(elementWithMatches.filterMatches).length > 0
+                  Object.keys(elementWithMatches.filterMatches).length > 0,
               );
-        })
+        }),
       );
     }
   }

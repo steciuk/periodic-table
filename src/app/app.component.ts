@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ElementsTableComponent } from './components/elements-table/elements-table.component';
+import { ElementsTableComponent } from './components/elements-table.component';
 import { ElementsService } from './services/elements.service';
 import { ElementsProviderMockService } from './services/elements-provider/elements-provider-mock.service';
 import { ElementsProviderService } from './services/elements-provider/elements-provider.service';
@@ -26,7 +26,8 @@ const FILTER_DEBOUNCE_TIME = 2000;
       useClass: ElementsProviderMockService,
     },
   ],
-  template: `<header class="p-4 flex justify-between">
+  template: `<div class="p-4">
+    <header class="flex justify-between">
       <h1>Periodic Table</h1>
       <app-clearable-input
         label="Filter"
@@ -39,10 +40,14 @@ const FILTER_DEBOUNCE_TIME = 2000;
           <app-elements-table [filterValue$]="debouncedFilterValue$" />
         </mat-tab>
         <mat-tab label="Grid">
-          <app-elements-grid [filterValue$]="debouncedFilterValue$" />
+          <app-elements-grid
+            class="pt-4"
+            [filterValue$]="debouncedFilterValue$"
+          />
         </mat-tab>
       </mat-tab-group>
-    </main>`,
+    </main>
+  </div>`,
 })
 export class AppComponent {
   protected readonly filterValue$ = new BehaviorSubject<string>('');
@@ -51,7 +56,7 @@ export class AppComponent {
     .pipe(
       debounceTime(FILTER_DEBOUNCE_TIME),
       // Do not wait for the first value to start filtering
-      startWith('')
+      startWith(''),
     );
 
   protected onFilterValueChange(value: string) {
