@@ -33,8 +33,8 @@ const FILTER_DEBOUNCE_TIME = 2000;
       useClass: ElementsProviderMockService,
     },
   ],
-  template: `<div class="p-4">
-    <header class="mb-8 flex flex-wrap justify-between gap-4">
+  template: `<div class="flex min-h-screen flex-col">
+    <header class="mb-8 flex flex-wrap justify-between gap-4 px-4 pt-4">
       <h1 class="m-0">Periodic Table</h1>
       <div class="flex flex-wrap items-center justify-center gap-4">
         <button
@@ -51,7 +51,7 @@ const FILTER_DEBOUNCE_TIME = 2000;
         />
       </div>
     </header>
-    <main>
+    <main class="flex-grow px-4">
       <mat-tab-group dynamicHeight>
         <mat-tab label="Grid">
           <app-elements-grid [filterValue$]="debouncedFilterValue$" />
@@ -61,6 +61,12 @@ const FILTER_DEBOUNCE_TIME = 2000;
         </mat-tab>
       </mat-tab-group>
     </main>
+    <footer class="mt-8 pb-4 text-center text-gray-500">
+      <span>Made by </span>
+      <a href="https://steciuk.dev/" target="_blank" rel="noopener"
+        >Adam Steciuk</a
+      >
+    </footer>
   </div>`,
 })
 export class AppComponent extends BaseComponent implements OnInit {

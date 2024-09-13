@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    color-scheme: dark;
+  }
+
   html,
   body {
     height: 100%;
