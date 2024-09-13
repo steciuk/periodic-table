@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "recruitment-task-elements": {
+    "periodic-table": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -27,7 +27,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/recruitment-task-elements",
+            "outputPath": "dist",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
@@ -73,10 +73,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "recruitment-task-elements:build:production"
+              "buildTarget": "periodic-table:build:production"
             },
             "development": {
-              "buildTarget": "recruitment-task-elements:build:development"
+              "buildTarget": "periodic-table:build:development"
             }
           },
           "defaultConfiguration": "development"
