@@ -10,7 +10,7 @@ import { PeriodicElement } from '../types/PeriodicElement';
     <mat-card>
       <div class="p-4">
         <div class="flex justify-between gap-4">
-          <div class="flex gap-4 items-center">
+          <div class="flex items-center gap-4">
             <div class="text-5xl">{{ element.number }}</div>
             <div>
               <mat-card-title>{{ element.name }}</mat-card-title>
@@ -31,12 +31,19 @@ import { PeriodicElement } from '../types/PeriodicElement';
         <img
           [src]="element.image.url"
           [alt]="element.image.title"
-          class="object-cover w-full aspect-square"
+          class="aspect-square w-full object-cover"
         />
         <mat-card-content class="pb-0">
           <p class="text-justify">
             {{ element.summary }}
           </p>
+          <a
+            [href]="element.source"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="mx-auto block w-max"
+            >Learn more</a
+          >
         </mat-card-content>
       </div>
     </mat-card>
