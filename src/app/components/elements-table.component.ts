@@ -72,9 +72,9 @@ import { FilterMatches } from '../types/utils';
       </mat-cell>
     </ng-container>
 
-    <mat-header-row *matHeaderRowDef="displayedColumns" />
+    <mat-header-row *matHeaderRowDef="DISPLAYED_COLUMNS" />
     <mat-row
-      *matRowDef="let row; columns: displayedColumns"
+      *matRowDef="let row; columns: DISPLAYED_COLUMNS"
       (click)="onRowClick(row.element)"
       [ariaLabel]="row.element.name"
       class="cursor-pointer"
@@ -90,7 +90,7 @@ export class ElementsTableComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly injector = inject(Injector);
 
-  protected readonly displayedColumns = [
+  protected readonly DISPLAYED_COLUMNS = [
     'number',
     'name',
     'symbol',
@@ -120,7 +120,7 @@ export class ElementsTableComponent implements OnInit {
             element,
             filterMatches: this.findMatchesService.findMatches(
               element,
-              this.displayedColumns,
+              this.DISPLAYED_COLUMNS,
               filterValue,
             ),
           }));

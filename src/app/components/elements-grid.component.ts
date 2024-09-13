@@ -7,7 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { combineLatestWith, map, Observable } from 'rxjs';
-import { PeriodicElement } from '../types/PeriodicElement';
+import { PeriodicElement, Phase } from '../types/PeriodicElement';
 import { ElementsService } from '../services/elements.service';
 import { FindMatchesService } from '../services/find-matches.service';
 import { FilterMatches } from '../types/utils';
@@ -16,8 +16,6 @@ import { ElementMarkValueMatchComponent } from './element-mark-value-match.compo
 import { MatDialog } from '@angular/material/dialog';
 import { ElementDialogComponent } from './element-dialog.component';
 
-const ATOMIC_MASS_DECIMALS = 3;
-
 @Component({
   selector: 'app-elements-grid',
   standalone: true,
@@ -25,7 +23,23 @@ const ATOMIC_MASS_DECIMALS = 3;
   host: { class: 'overflow-x-auto block' },
   template: `
     @let isFilter = filterValue$ && (filterValue$ | async) !== '';
-    <div class="main-grid grid w-full min-w-[1200px] py-4">
+    <div
+      class="main-grid m-auto grid w-full min-w-[1200px] max-w-[1600px] py-4"
+    >
+      <ul
+        class="col-span-8 col-start-4 row-span-3 row-start-1 m-0 grid place-content-center gap-2"
+      >
+        @for (phaseColor of PHASE_COLOR_MAP | keyvalue; track phaseColor.key) {
+          <li class="flex list-inside list-none items-center gap-1">
+            <div
+              class="h-5 w-12 rounded-sm"
+              [ngStyle]="{ backgroundColor: phaseColor.value }"
+            ></div>
+            -
+            <span>{{ phaseColor.key }}</span>
+          </li>
+        }
+      </ul>
       @for (
         elementWithMatches of elementsWithMatches$ | async;
         track elementWithMatches.element.id
@@ -33,13 +47,14 @@ const ATOMIC_MASS_DECIMALS = 3;
         @let element = elementWithMatches.element;
         @let filterMatch = elementWithMatches.filterMatches;
         <button
-          class="flex cursor-pointer flex-col justify-between border border-solid border-slate-700 bg-transparent p-1 text-left text-inherit"
+          class="flex cursor-pointer flex-col justify-between border border-solid border-slate-700 p-1 text-left text-inherit"
           [ngClass]="{
             'opacity-20': isFilter && !areMatches(filterMatch),
           }"
           [ngStyle]="{
             gridColumn: element.xpos,
             gridRow: element.ypos,
+            backgroundColor: PHASE_COLOR_MAP[element.phase],
           }"
           (click)="onCellClick(element)"
           [ariaLabel]="element.name"
@@ -55,7 +70,7 @@ const ATOMIC_MASS_DECIMALS = 3;
             [filterMatch]="filterMatch.symbol"
           />
           <app-element-mark-value-match
-            class="m-0 w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-xs leading-none"
+            class="m-0 w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-xs leading-none tracking-tighter"
             [value]="element.name"
             [filterMatch]="filterMatch.name"
           />
@@ -91,8 +106,13 @@ export class ElementsGridComponent implements OnInit {
     'atomic_mass',
   ] as const satisfies (keyof PeriodicElement)[];
 
-  protected readonly ATOMIC_MASS_DECIMALS = ATOMIC_MASS_DECIMALS;
-  protected readonly ATOMIC_MASS_DECIMALS_PATTERN = `1.0-${ATOMIC_MASS_DECIMALS}`;
+  protected readonly ATOMIC_MASS_DECIMALS = 3;
+  protected readonly ATOMIC_MASS_DECIMALS_PATTERN = `1.0-${this.ATOMIC_MASS_DECIMALS}`;
+  protected readonly PHASE_COLOR_MAP = {
+    [Phase.Solid]: '#27272a',
+    [Phase.Liquid]: '#1e3a8a',
+    [Phase.Gas]: '#14532d',
+  } as const satisfies { [key in Phase]: string };
 
   protected elementsWithMatches$: Observable<
     {
@@ -119,8 +139,10 @@ export class ElementsGridComponent implements OnInit {
               {
                 ...element,
                 atomic_mass:
-                  Math.round(element.atomic_mass * 10 ** ATOMIC_MASS_DECIMALS) /
-                  10 ** ATOMIC_MASS_DECIMALS,
+                  Math.round(
+                    element.atomic_mass * 10 ** this.ATOMIC_MASS_DECIMALS,
+                  ) /
+                  10 ** this.ATOMIC_MASS_DECIMALS,
               },
               this.searchKeys,
               filterValue,
