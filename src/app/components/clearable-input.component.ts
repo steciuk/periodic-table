@@ -22,7 +22,7 @@ import { MatInputModule } from '@angular/material/input';
     MatIconModule,
   ],
   template: `
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" class="min-w-60">
       <mat-label>{{ label }}</mat-label>
       <input
         matInput
@@ -31,9 +31,9 @@ import { MatInputModule } from '@angular/material/input';
         (ngModelChange)="onValueChange($event)"
       />
       @if (value) {
-      <button matSuffix mat-icon-button aria-label="Clear" (click)="clear()">
-        <mat-icon>close</mat-icon>
-      </button>
+        <button matSuffix mat-icon-button aria-label="Clear" (click)="clear()">
+          <mat-icon>close</mat-icon>
+        </button>
       }
     </mat-form-field>
   `,

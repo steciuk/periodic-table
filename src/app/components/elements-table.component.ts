@@ -76,6 +76,7 @@ import { FilterMatches } from '../types/utils';
     <mat-row
       *matRowDef="let row; columns: displayedColumns"
       (click)="onRowClick(row.element)"
+      [ariaLabel]="row.element.name"
       class="cursor-pointer"
     />
   </mat-table>`,

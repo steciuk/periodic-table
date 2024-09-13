@@ -40,10 +40,7 @@ const FILTER_DEBOUNCE_TIME = 2000;
           <app-elements-table [filterValue$]="debouncedFilterValue$" />
         </mat-tab>
         <mat-tab label="Grid">
-          <app-elements-grid
-            class="pt-4"
-            [filterValue$]="debouncedFilterValue$"
-          />
+          <app-elements-grid [filterValue$]="debouncedFilterValue$" />
         </mat-tab>
       </mat-tab-group>
     </main>

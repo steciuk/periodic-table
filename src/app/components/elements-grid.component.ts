@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  Injector,
   Input,
   OnInit,
 } from '@angular/core';
@@ -12,6 +13,8 @@ import { FindMatchesService } from '../services/find-matches.service';
 import { FilterMatches } from '../types/utils';
 import { CommonModule } from '@angular/common';
 import { ElementMarkValueMatchComponent } from './element-mark-value-match.component';
+import { MatDialog } from '@angular/material/dialog';
+import { ElementDialogComponent } from './element-dialog.component';
 
 const ATOMIC_MASS_DECIMALS = 3;
 
@@ -22,15 +25,15 @@ const ATOMIC_MASS_DECIMALS = 3;
   host: { class: 'overflow-x-auto block' },
   template: `
     @let isFilter = filterValue$ && (filterValue$ | async) !== '';
-    <div class="main-grid grid w-full min-w-[1200px]">
+    <div class="main-grid grid w-full min-w-[1200px] py-4">
       @for (
         elementWithMatches of elementsWithMatches$ | async;
         track elementWithMatches.element.id
       ) {
         @let element = elementWithMatches.element;
         @let filterMatch = elementWithMatches.filterMatches;
-        <div
-          class="flex flex-col justify-between border border-solid border-slate-700 p-1"
+        <button
+          class="flex cursor-pointer flex-col justify-between border border-solid border-slate-700 bg-transparent p-1 text-left text-inherit"
           [ngClass]="{
             'opacity-20': isFilter && !areMatches(filterMatch),
           }"
@@ -38,6 +41,8 @@ const ATOMIC_MASS_DECIMALS = 3;
             gridColumn: element.xpos,
             gridRow: element.ypos,
           }"
+          (click)="onCellClick(element)"
+          [ariaLabel]="element.name"
         >
           <app-element-mark-value-match
             class="m-0 text-base leading-none"
@@ -59,7 +64,7 @@ const ATOMIC_MASS_DECIMALS = 3;
             [value]="element.atomic_mass | number: ATOMIC_MASS_DECIMALS_PATTERN"
             [filterMatch]="filterMatch.atomic_mass"
           />
-        </div>
+        </button>
       }
     </div>
   `,
@@ -73,8 +78,11 @@ const ATOMIC_MASS_DECIMALS = 3;
 })
 export class ElementsGridComponent implements OnInit {
   @Input() filterValue$?: Observable<string>;
+
   private readonly elementsService = inject(ElementsService);
   private readonly findMatchesService = inject(FindMatchesService);
+  private readonly dialog = inject(MatDialog);
+  private readonly injector = inject(Injector);
 
   private readonly searchKeys = [
     'number',
@@ -125,5 +133,12 @@ export class ElementsGridComponent implements OnInit {
 
   protected areMatches(filterMatches: FilterMatches<PeriodicElement>) {
     return Object.keys(filterMatches).length > 0;
+  }
+
+  protected onCellClick(element: PeriodicElement) {
+    this.dialog.open(ElementDialogComponent, {
+      data: element,
+      injector: this.injector,
+    });
   }
 }
