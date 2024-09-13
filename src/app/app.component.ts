@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { ElementsTableComponent } from './components/elements-table.component';
 import { ElementsService } from './services/elements.service';
 import { ElementsProviderMockService } from './services/elements-provider/elements-provider-mock.service';
@@ -7,6 +7,10 @@ import { ClearableInputComponent } from './components/clearable-input.component'
 import { BehaviorSubject, debounceTime, startWith } from 'rxjs';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ElementsGridComponent } from './components/elements-grid.component';
+import { CommonModule } from '@angular/common';
+import { MatButtonModule } from '@angular/material/button';
+import { BaseComponent } from './components/base.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 const FILTER_DEBOUNCE_TIME = 2000;
 
@@ -18,6 +22,9 @@ const FILTER_DEBOUNCE_TIME = 2000;
     ClearableInputComponent,
     MatTabsModule,
     ElementsGridComponent,
+    CommonModule,
+    MatButtonModule,
+    MatTooltipModule,
   ],
   providers: [
     ElementsService,
@@ -27,12 +34,22 @@ const FILTER_DEBOUNCE_TIME = 2000;
     },
   ],
   template: `<div class="p-4">
-    <header class="flex justify-between">
-      <h1>Periodic Table</h1>
-      <app-clearable-input
-        label="Filter"
-        (valueChange)="onFilterValueChange($event)"
-      />
+    <header class="mb-8 flex flex-wrap justify-between gap-4">
+      <h1 class="m-0">Periodic Table</h1>
+      <div class="flex flex-wrap items-center justify-center gap-4">
+        <button
+          mat-stroked-button
+          matTooltip="Reverts all changes made to the elements data, i.e. their names, symbols, weights, etc."
+          (click)="onDiscardChanges()"
+          [disabled]="!areChanges"
+        >
+          Revert all changes
+        </button>
+        <app-clearable-input
+          label="Filter"
+          (valueChange)="onFilterValueChange($event)"
+        />
+      </div>
     </header>
     <main>
       <mat-tab-group dynamicHeight>
@@ -46,8 +63,11 @@ const FILTER_DEBOUNCE_TIME = 2000;
     </main>
   </div>`,
 })
-export class AppComponent {
+export class AppComponent extends BaseComponent implements OnInit {
   protected readonly filterValue$ = new BehaviorSubject<string>('');
+  private readonly elementsService = inject(ElementsService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
   protected readonly debouncedFilterValue$ = this.filterValue$
     .asObservable()
     .pipe(
@@ -56,7 +76,25 @@ export class AppComponent {
       startWith(''),
     );
 
+  protected areChanges = false;
+
+  ngOnInit() {
+    this.subs.sink = this.elementsService
+      .getAreChanges$()
+      .subscribe((areChanges) => {
+        // Real update
+        this.areChanges = areChanges;
+        this.cdr.detectChanges();
+      });
+  }
+
   protected onFilterValueChange(value: string) {
     this.filterValue$.next(value);
+  }
+
+  protected onDiscardChanges() {
+    this.elementsService.discardChanges();
+    // Optimistic update
+    this.areChanges = false;
   }
 }

@@ -1,13 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpService } from '../http.service';
 import { PeriodicElement } from '../../types/PeriodicElement';
-import { delay, map, take } from 'rxjs';
+import { delay, from, map, Observable, switchMap, take } from 'rxjs';
 import { indexedDB, rx } from './IndexedDB';
 import { ElementsProviderService } from './elements-provider.service';
 
-// TODO: Reenable the delay
 const MOCK_SERVER_DELAY = 1000;
-// const MOCK_SERVER_DELAY = 0;
 
 @Injectable()
 export class ElementsProviderMockService extends ElementsProviderService {
@@ -19,13 +17,9 @@ export class ElementsProviderMockService extends ElementsProviderService {
     // If no elements are in the database, fetch them from the server
     indexedDB.elements.count().then((count) => {
       if (count === 0) {
-        this.http
-          .get<{ elements: PeriodicElement[] }>('elements.json')
-          .pipe(map((response) => response.elements))
-          .pipe(take(1))
-          .subscribe((elements) => {
-            indexedDB.elements.bulkAdd(elements);
-          });
+        this.getDefaultElements$().subscribe((elements) => {
+          indexedDB.elements.bulkAdd(elements);
+        });
       }
     });
   }
@@ -36,12 +30,33 @@ export class ElementsProviderMockService extends ElementsProviderService {
 
   getAll$() {
     return rx(() => indexedDB.elements.toArray()).pipe(
-      delay(MOCK_SERVER_DELAY)
+      delay(MOCK_SERVER_DELAY),
     );
   }
 
-  update(element: PeriodicElement) {
+  update$(element: PeriodicElement) {
     // TODO: Data validation as this simulates backend
-    indexedDB.elements.put(element);
+    return from(indexedDB.elements.put(element)).pipe(delay(MOCK_SERVER_DELAY));
+  }
+
+  discardChanges$() {
+    return this.getDefaultElements$().pipe(
+      switchMap((elements) =>
+        from(
+          (async () => {
+            await indexedDB.elements.clear();
+            await indexedDB.elements.bulkAdd(elements);
+          })(),
+        ),
+      ),
+      delay(MOCK_SERVER_DELAY),
+    );
+  }
+
+  private getDefaultElements$(): Observable<PeriodicElement[]> {
+    return this.http.get<{ elements: PeriodicElement[] }>('elements.json').pipe(
+      map((response) => response.elements),
+      take(1),
+    );
   }
 }

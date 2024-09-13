@@ -16,8 +16,8 @@ export class LocalStorageService {
     }
   }
 
-  setItem(key: string, value: string) {
-    this.storage.setItem(key, value);
+  setItem(key: string, value: unknown) {
+    this.storage.setItem(key, JSON.stringify(value));
   }
 
   removeItem(key: string) {
