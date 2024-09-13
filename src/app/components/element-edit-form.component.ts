@@ -75,7 +75,7 @@ import { ElementsService } from '../services/elements.service';
           } @else if (numerErrors?.['min']) {
             <mat-error>Number must be greater than 0</mat-error>
           } @else if (numerErrors?.['pattern']) {
-            <mat-error>Number must be an integer</mat-error>
+            <mat-error>Number must be a positive integer</mat-error>
           }
         </mat-form-field>
         <mat-form-field subscriptSizing="dynamic" appearance="outline">
@@ -100,7 +100,7 @@ import { ElementsService } from '../services/elements.service';
           @if (massErrors?.['required']) {
             <mat-error>Atomic mass is required</mat-error>
           } @else if (massErrors?.['min']) {
-            <mat-error>Atomic mass must be greater than 0</mat-error>
+            <mat-error>Atomic mass must be greater than 1</mat-error>
           }
         </mat-form-field>
 
