@@ -8,7 +8,7 @@ This project was developed as a recruitment task for an Angular Developer positi
 
 JSON containing all the elements' data comes from [here](https://github.com/Bowserinator/Periodic-Table-JSON).
 
-Deployed version available at [periodic.steciuk.dev](https://periodic.steciuk.dev).
+Deployed version available at [elements.steciuk.dev](https://elements.steciuk.dev).
 
 ## Task description
 - Create a view, displaying a table of elements (columns: `Number`, `Name`, `Weight`, `Symbol`).
