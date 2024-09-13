@@ -27,24 +27,26 @@ import { ElementsService } from '../services/elements.service';
     ElementEditFormComponent,
   ],
   template: `
-    <div class="max-h-screen grid grid-rows-[1fr_auto] w-[min(560px,_100vw)]">
+    <div
+      class="grid max-h-screen min-w-[min(560px,_90vw)] grid-rows-[1fr_auto]"
+    >
       <div class="max-h-full overflow-auto">
-        @if(isEditMode) {
-        <app-element-edit-form
-          class="flex"
-          [element]="element"
-          (cancel)="isEditMode = false"
-          (save)="formSaved($event)"
-        />
+        @if (isEditMode) {
+          <app-element-edit-form
+            class="flex"
+            [element]="element"
+            (cancel)="isEditMode = false"
+            (save)="formSaved($event)"
+          />
         } @else {
-        <app-element-info-card [element]="element" />
+          <app-element-info-card [element]="element" />
         }
       </div>
       @if (!isEditMode) {
-      <mat-dialog-actions class="flex justify-between">
-        <button mat-button (click)="dialogRef.close()">Close</button>
-        <button mat-button (click)="isEditMode = true">Edit</button>
-      </mat-dialog-actions>
+        <mat-dialog-actions class="flex justify-between">
+          <button mat-button (click)="dialogRef.close()">Close</button>
+          <button mat-button (click)="isEditMode = true">Edit</button>
+        </mat-dialog-actions>
       }
     </div>
   `,

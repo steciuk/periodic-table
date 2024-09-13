@@ -34,80 +34,88 @@ import { ElementsService } from '../services/elements.service';
   ],
   template: `
     <div class="w-full p-4">
-      <form [formGroup]="elementForm" class="space-y-7">
-        <div class="grid grid-cols-2 gap-x-3 gap-y-7">
-          <mat-form-field appearance="outline">
-            <mat-label>Name</mat-label>
-            <input matInput formControlName="name" autocomplete="off" />
+      <form
+        [formGroup]="elementForm"
+        class="grid grid-cols-1 gap-4 sm:grid-cols-2"
+      >
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" autocomplete="off" />
 
-            @let nameErrors = elementForm.get("name")?.errors;
-            @if(nameErrors?.['required']) {
+          @let nameErrors = elementForm.get('name')?.errors;
+          @if (nameErrors?.['required']) {
             <mat-error>Name is required</mat-error>
-            } @else if (nameErrors?.['maxlength']) {
+          } @else if (nameErrors?.['maxlength']) {
             <mat-error>Name must be less than 20 characters</mat-error>
-            }
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Symbol</mat-label>
-            <input matInput formControlName="symbol" />
+          }
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Symbol</mat-label>
+          <input matInput formControlName="symbol" />
 
-            @let symbolErrors = elementForm.get("symbol")?.errors;
-            @if(symbolErrors?.['required']) {
+          @let symbolErrors = elementForm.get('symbol')?.errors;
+          @if (symbolErrors?.['required']) {
             <mat-error>Symbol is required</mat-error>
-            } @else if (symbolErrors?.['maxlength']) {
+          } @else if (symbolErrors?.['maxlength']) {
             <mat-error>Symbol must be less than 3 characters</mat-error>
-            } @else if (symbolErrors?.['pattern']) {
+          } @else if (symbolErrors?.['pattern']) {
             <mat-error
               >Symbol must must contain only letters and start with a
               capital</mat-error
             >
-            }
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Number</mat-label>
-            <input matInput formControlName="number" />
+          }
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Number</mat-label>
+          <input matInput formControlName="number" />
 
-            @let numerErrors = elementForm.get("number")?.errors;
-            @if(numerErrors?.['required']) {
+          @let numerErrors = elementForm.get('number')?.errors;
+          @if (numerErrors?.['required']) {
             <mat-error>Number is required</mat-error>
-            } @else if (numerErrors?.['min']) {
+          } @else if (numerErrors?.['min']) {
             <mat-error>Number must be greater than 0</mat-error>
-            } @else if (numerErrors?.['pattern']) {
+          } @else if (numerErrors?.['pattern']) {
             <mat-error>Number must be an integer</mat-error>
-            }
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Phase</mat-label>
-            <mat-select formControlName="phase">
-              @for (phase of phases; track phase) {
+          }
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Phase</mat-label>
+          <mat-select formControlName="phase">
+            @for (phase of phases; track phase) {
               <mat-option [value]="phase">
                 {{ phase }}
               </mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Category</mat-label>
-            <input matInput formControlName="category" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Atomic Mass</mat-label>
-            <input matInput formControlName="atomic_mass" />
-
-            @let massErrors = elementForm.get("atomic_mass")?.errors;
-            @if(massErrors?.['required']) {
-            <mat-error>Atomic mass is required</mat-error>
-            } @else if (massErrors?.['min']) {
-            <mat-error>Atomic mass must be greater than 0</mat-error>
             }
-          </mat-form-field>
-        </div>
-        <mat-form-field class="w-full" appearance="outline">
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Category</mat-label>
+          <input matInput formControlName="category" />
+        </mat-form-field>
+        <mat-form-field subscriptSizing="dynamic" appearance="outline">
+          <mat-label>Atomic Mass</mat-label>
+          <input matInput formControlName="atomic_mass" />
+
+          @let massErrors = elementForm.get('atomic_mass')?.errors;
+          @if (massErrors?.['required']) {
+            <mat-error>Atomic mass is required</mat-error>
+          } @else if (massErrors?.['min']) {
+            <mat-error>Atomic mass must be greater than 0</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field
+          subscriptSizing="dynamic"
+          class="sm:col-span-2"
+          appearance="outline"
+        >
           <mat-label>Summary</mat-label>
           <textarea matInput formControlName="summary"></textarea>
         </mat-form-field>
       </form>
-      <mat-dialog-actions class="flex justify-between">
+      <mat-dialog-actions
+        class="flex flex-col items-center sm:flex-row sm:justify-between"
+      >
         <button mat-button (click)="cancel.emit()">Cancel</button>
         <button mat-button [disabled]="elementForm.invalid" (click)="onSave()">
           I'm a physicist, save changes
@@ -116,7 +124,7 @@ import { ElementsService } from '../services/elements.service';
     </div>
   `,
   styles: `
-    input[type="number"] {
+    input[type='number'] {
       appearance: textfield;
     }
   `,

@@ -21,7 +21,8 @@ import { FilterMatches } from '../types/utils';
   selector: 'app-elements-table',
   standalone: true,
   imports: [MatTableModule, CommonModule, ElementMarkValueMatchComponent],
-  template: ` <mat-table [dataSource]="dataSource$">
+  host: { class: 'block overflow-x-auto' },
+  template: ` <mat-table [dataSource]="dataSource$" class="min-w-[650px]">
     <ng-container matColumnDef="number">
       <mat-header-cell *matHeaderCellDef>Number</mat-header-cell>
       <mat-cell *matCellDef="let elementWithMatches">
@@ -48,6 +49,16 @@ import { FilterMatches } from '../types/utils';
         <app-element-mark-value-match
           [value]="elementWithMatches.element.symbol"
           [filterMatch]="elementWithMatches.filterMatches.symbol"
+        />
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="category">
+      <mat-header-cell *matHeaderCellDef>Category</mat-header-cell>
+      <mat-cell *matCellDef="let elementWithMatches">
+        <app-element-mark-value-match
+          [value]="elementWithMatches.element.category"
+          [filterMatch]="elementWithMatches.filterMatches.category"
         />
       </mat-cell>
     </ng-container>
@@ -95,6 +106,7 @@ export class ElementsTableComponent implements OnInit {
     'name',
     'symbol',
     'phase',
+    'category',
     'atomic_mass',
   ] as const satisfies (keyof PeriodicElement)[];
 
