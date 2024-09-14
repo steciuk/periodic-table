@@ -17,7 +17,7 @@ import { ElementsViewComponent } from './elements-view.component';
       <app-loading />
     } @else {
       <div
-        class="main-grid m-auto grid w-full min-w-[1200px] max-w-[1600px] py-4"
+        class="main-grid m-auto grid w-full min-w-[1200px] max-w-[1600px] gap-0.5 py-4"
       >
         <ul
           class="col-span-8 col-start-4 row-span-3 row-start-1 m-0 grid place-content-center gap-2"
@@ -44,7 +44,7 @@ import { ElementsViewComponent } from './elements-view.component';
           @let element = elementWithMatches.element;
           @let filterMatch = elementWithMatches.filterMatches;
           <button
-            class="flex cursor-pointer flex-col justify-between border border-solid border-slate-700 p-1 text-left text-inherit"
+            class="flex cursor-pointer flex-col justify-between border-none p-1 text-left text-inherit"
             [ngClass]="{
               'opacity-20': isFilter && !areMatches(filterMatch),
             }"
