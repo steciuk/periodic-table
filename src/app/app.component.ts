@@ -53,11 +53,11 @@ const FILTER_DEBOUNCE_TIME = 2000;
     </header>
     <main class="flex-grow px-4">
       <mat-tab-group dynamicHeight>
-        <mat-tab label="Table">
-          <app-elements-table [filterValue$]="debouncedFilterValue$" />
-        </mat-tab>
         <mat-tab label="Grid">
           <app-elements-grid [filterValue$]="debouncedFilterValue$" />
+        </mat-tab>
+        <mat-tab label="Table">
+          <app-elements-table [filterValue$]="debouncedFilterValue$" />
         </mat-tab>
       </mat-tab-group>
     </main>
