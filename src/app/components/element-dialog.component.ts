@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  inject,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
@@ -14,8 +8,9 @@ import { PeriodicElement } from '../types/PeriodicElement';
 import { MatButton } from '@angular/material/button';
 import { ElementInfoCardComponent } from './element-info-card.component';
 import { ElementEditFormComponent } from './element-edit-form.component';
-import { BaseComponent } from './base.component';
 import { ElementsService } from '../services/elements.service';
+import { merge, startWith, Subject } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-element-details-dialog',
@@ -25,11 +20,13 @@ import { ElementsService } from '../services/elements.service';
     ElementInfoCardComponent,
     MatDialogActions,
     ElementEditFormComponent,
+    AsyncPipe,
   ],
   template: `
     <div
       class="grid max-h-screen min-w-[min(560px,_90vw)] grid-rows-[1fr_auto]"
     >
+      @let element = (element$ | async)!;
       <div class="max-h-full overflow-auto">
         @if (isEditMode) {
           <app-element-edit-form
@@ -52,29 +49,22 @@ import { ElementsService } from '../services/elements.service';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ElementDialogComponent extends BaseComponent implements OnInit {
+export class ElementDialogComponent {
   readonly dialogRef = inject(MatDialogRef<ElementDialogComponent>);
   private readonly elementsService = inject(ElementsService);
-  private readonly cdr = inject(ChangeDetectorRef);
-  element = inject<PeriodicElement>(MAT_DIALOG_DATA);
+  private readonly element = inject<PeriodicElement>(MAT_DIALOG_DATA);
 
   protected isEditMode = false;
-
-  ngOnInit(): void {
-    this.subs.sink = this.elementsService
-      .get$(this.element.id)
-      .subscribe((element) => {
-        if (element) {
-          // Real update
-          this.element = element;
-          this.cdr.markForCheck();
-        }
-      });
-  }
+  protected readonly elementFromForm$ = new Subject<PeriodicElement>();
+  protected readonly element$ = merge(
+    // Optimistic update
+    this.elementFromForm$,
+    // Real update
+    this.elementsService.get$(this.element.id),
+  ).pipe(startWith(this.element));
 
   protected formSaved(element: PeriodicElement) {
     this.isEditMode = false;
-    // Optimistic update
-    this.element = element;
+    this.elementFromForm$.next(element);
   }
 }

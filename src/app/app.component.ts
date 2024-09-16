@@ -1,18 +1,16 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ElementsTableComponent } from './components/elements-table.component';
 import { ElementsService } from './services/elements.service';
 import { ElementsProviderMockService } from './services/elements-provider/elements-provider-mock.service';
 import { ElementsProviderService } from './services/elements-provider/elements-provider.service';
 import { ClearableInputComponent } from './components/clearable-input.component';
-import { BehaviorSubject, debounceTime, startWith } from 'rxjs';
+import { distinctUntilChanged, map, merge, startWith, Subject } from 'rxjs';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ElementsGridComponent } from './components/elements-grid.component';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { BaseComponent } from './components/base.component';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
-const FILTER_DEBOUNCE_TIME = 2000;
+import { FilterService } from './services/filter.service';
 
 @Component({
   selector: 'app-root',
@@ -41,7 +39,7 @@ const FILTER_DEBOUNCE_TIME = 2000;
           mat-stroked-button
           matTooltip="Reverts all changes made to the elements data, i.e. their names, symbols, weights, etc."
           (click)="onDiscardChanges()"
-          [disabled]="!areChanges"
+          [disabled]="(areChanges$ | async) === false"
         >
           Revert all changes
         </button>
@@ -54,10 +52,10 @@ const FILTER_DEBOUNCE_TIME = 2000;
     <main class="flex-grow px-4">
       <mat-tab-group dynamicHeight>
         <mat-tab label="Grid">
-          <app-elements-grid [filterValue$]="debouncedFilterValue$" />
+          <app-elements-grid />
         </mat-tab>
         <mat-tab label="Table">
-          <app-elements-table [filterValue$]="debouncedFilterValue$" />
+          <app-elements-table />
         </mat-tab>
       </mat-tab-group>
     </main>
@@ -69,38 +67,24 @@ const FILTER_DEBOUNCE_TIME = 2000;
     </footer>
   </div>`,
 })
-export class AppComponent extends BaseComponent implements OnInit {
-  protected readonly filterValue$ = new BehaviorSubject<string>('');
+export class AppComponent {
   private readonly elementsService = inject(ElementsService);
-  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly filterService = inject(FilterService);
 
-  protected readonly debouncedFilterValue$ = this.filterValue$
-    .asObservable()
-    .pipe(
-      debounceTime(FILTER_DEBOUNCE_TIME),
-      // Do not wait for the first value to start filtering
-      startWith(''),
-    );
-
-  protected areChanges = false;
-
-  ngOnInit() {
-    this.subs.sink = this.elementsService
-      .getAreChanges$()
-      .subscribe((areChanges) => {
-        // Real update
-        this.areChanges = areChanges;
-        this.cdr.markForCheck();
-      });
-  }
+  private readonly changesDiscarded$ = new Subject<void>();
+  protected readonly areChanges$ = merge(
+    // Real update
+    this.elementsService.getAreChanges$(),
+    // Optimistic update
+    this.changesDiscarded$.pipe(map(() => false)),
+  ).pipe(startWith(false), distinctUntilChanged());
 
   protected onFilterValueChange(value: string) {
-    this.filterValue$.next(value);
+    this.filterService.setFilterValue(value);
   }
 
   protected onDiscardChanges() {
     this.elementsService.discardChanges();
-    // Optimistic update
-    this.areChanges = false;
+    this.changesDiscarded$.next();
   }
 }

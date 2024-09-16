@@ -1,11 +1,14 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { combineLatestWith, map } from 'rxjs';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { map, Observable } from 'rxjs';
 import { PeriodicElement, Phase } from '../types/PeriodicElement';
-import { FilterMatches } from '../types/utils';
 import { CommonModule } from '@angular/common';
 import { ElementMarkValueMatchComponent } from './element-mark-value-match.component';
 import { LoadingComponent } from './loading.component';
-import { ElementsViewComponent } from './elements-view.component';
+import {
+  ElementsViewComponent,
+  PeriodicElementWIthMatches,
+} from './elements-view.component';
+import { FindMatchesService } from '../services/find-matches.service';
 
 @Component({
   selector: 'app-elements-grid',
@@ -13,7 +16,8 @@ import { ElementsViewComponent } from './elements-view.component';
   imports: [CommonModule, ElementMarkValueMatchComponent, LoadingComponent],
   host: { class: 'overflow-x-auto block' },
   template: `
-    @if (isLoading) {
+    @let matchData = matchData$ | async;
+    @if (matchData === null) {
       <app-loading />
     } @else {
       <div
@@ -36,9 +40,8 @@ import { ElementsViewComponent } from './elements-view.component';
             </li>
           }
         </ul>
-        @let isFilter = filterValue$ && (filterValue$ | async) !== '';
         @for (
-          elementWithMatches of elementsWithMatches;
+          elementWithMatches of matchData.elementsWithMatches;
           track elementWithMatches.element.id
         ) {
           @let element = elementWithMatches.element;
@@ -46,7 +49,9 @@ import { ElementsViewComponent } from './elements-view.component';
           <button
             class="flex cursor-pointer flex-col justify-between border-none p-1 text-left text-inherit"
             [ngClass]="{
-              'opacity-20': isFilter && !areMatches(filterMatch),
+              'opacity-20':
+                matchData.filterValue !== '' &&
+                (filterMatch | keyvalue).length === 0,
             }"
             [ngStyle]="{
               gridColumn: element.xpos,
@@ -91,10 +96,8 @@ import { ElementsViewComponent } from './elements-view.component';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ElementsGridComponent
-  extends ElementsViewComponent
-  implements OnInit
-{
+export class ElementsGridComponent extends ElementsViewComponent {
+  private readonly findMatchesService = inject(FindMatchesService);
   protected readonly USED_KEYS = [
     'number',
     'name',
@@ -110,49 +113,29 @@ export class ElementsGridComponent
     [Phase.Gas]: '#14532d',
   } as const satisfies { [key in Phase]: string };
 
-  ngOnInit(): void {
-    if (this.filterValue$ === undefined) {
-      this.subs.sink = this.elementsService
-        .getAll$()
-        .pipe(
-          map((elements) =>
-            elements.map((element) => ({ element, filterMatches: {} })),
-          ),
-        )
-        .subscribe((elementsWithMatches) => {
-          this.updateElements(elementsWithMatches);
-        });
-    } else {
-      this.subs.sink = this.elementsService
-        .getAll$()
-        .pipe(
-          combineLatestWith(this.filterValue$),
-          map(([elements, filterValue]) => {
-            return elements.map((element) => ({
-              element,
-              filterMatches: this.findMatchesService.findMatches(
-                // Round atomic mass for filter matcher, cause there are less decimals displayed in the grid and we don't want to match on something that is not displayed
-                {
-                  ...element,
-                  atomic_mass:
-                    Math.round(
-                      element.atomic_mass * 10 ** this.ATOMIC_MASS_DECIMALS,
-                    ) /
-                    10 ** this.ATOMIC_MASS_DECIMALS,
-                },
-                this.USED_KEYS,
-                filterValue,
-              ),
-            }));
-          }),
-        )
-        .subscribe((elementsWithMatches) => {
-          this.updateElements(elementsWithMatches);
-        });
-    }
-  }
-
-  protected areMatches(filterMatches: FilterMatches<PeriodicElement>) {
-    return Object.keys(filterMatches).length > 0;
-  }
+  // 'filterValue' is used to fade out elements that don't have matches if filter is applied. It would be more readable not to combine 'elementsWithMatches' and 'filterValue' into one final stream, and 'async' pipe them separately in the template, but this results in brief flashing of the grid on filter changes, due to filterValue arriving a touch earlier.
+  protected readonly matchData$: Observable<{
+    elementsWithMatches: PeriodicElementWIthMatches[];
+    filterValue: string;
+  }> = this.elementsWithFilter$.pipe(
+    map(([elements, filterValue]) => ({
+      elementsWithMatches: elements.map((element) => ({
+        element,
+        filterMatches: this.findMatchesService.findMatches(
+          // Round atomic mass for filter matcher, cause there are less decimals displayed in the grid and we don't want to match on something that is not displayed
+          {
+            ...element,
+            atomic_mass:
+              Math.round(
+                element.atomic_mass * 10 ** this.ATOMIC_MASS_DECIMALS,
+              ) /
+              10 ** this.ATOMIC_MASS_DECIMALS,
+          },
+          this.USED_KEYS,
+          filterValue,
+        ),
+      })),
+      filterValue,
+    })),
+  );
 }

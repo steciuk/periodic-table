@@ -1,50 +1,44 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   inject,
   Injector,
-  Input,
 } from '@angular/core';
-import { BaseComponent } from './base.component';
-import { Observable } from 'rxjs';
+import { combineLatestWith, debounceTime, startWith } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ElementsService } from '../services/elements.service';
-import { FindMatchesService } from '../services/find-matches.service';
 import { PeriodicElement } from '../types/PeriodicElement';
 import { FilterMatches } from '../types/utils';
 import { ElementDialogComponent } from './element-dialog.component';
+import { FilterService } from '../services/filter.service';
 
-type PeriodicElementWIthMatches = {
+export type PeriodicElementWIthMatches = {
   element: PeriodicElement;
   filterMatches: FilterMatches<PeriodicElement>;
 };
+
+const FILTER_DEBOUNCE_TIME = 2000;
 
 @Component({
   template: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export abstract class ElementsViewComponent extends BaseComponent {
-  @Input() filterValue$?: Observable<string>;
+export abstract class ElementsViewComponent {
+  private readonly elementsService = inject(ElementsService);
+  private readonly dialog = inject(MatDialog);
+  private readonly injector = inject(Injector);
+  protected readonly filterService = inject(FilterService);
 
-  protected readonly elementsService = inject(ElementsService);
-  protected readonly findMatchesService = inject(FindMatchesService);
-  protected readonly dialog = inject(MatDialog);
-  protected readonly injector = inject(Injector);
-  protected readonly cdr = inject(ChangeDetectorRef);
+  protected readonly filteredValue$ = this.filterService.getFilterValue$().pipe(
+    // Filter after 2 seconds of inactivity
+    debounceTime(FILTER_DEBOUNCE_TIME),
+    // Do not wait for the first value
+    startWith(''),
+  );
 
-  protected abstract readonly USED_KEYS: (keyof PeriodicElement)[];
-
-  protected isLoading = true;
-  protected elementsWithMatches: PeriodicElementWIthMatches[] = [];
-
-  protected updateElements(
-    elementsWithMatches: PeriodicElementWIthMatches[],
-  ): void {
-    this.elementsWithMatches = elementsWithMatches;
-    this.isLoading = false;
-    this.cdr.markForCheck();
-  }
+  protected readonly elementsWithFilter$ = this.elementsService
+    .getAll$()
+    .pipe(combineLatestWith(this.filteredValue$));
 
   protected openDialog(element: PeriodicElement): void {
     this.dialog.open(ElementDialogComponent, {

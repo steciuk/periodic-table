@@ -1,11 +1,15 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { PeriodicElement } from '../types/PeriodicElement';
-import { combineLatestWith, map } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { ElementMarkValueMatchComponent } from './element-mark-value-match.component';
 import { LoadingComponent } from './loading.component';
-import { ElementsViewComponent } from './elements-view.component';
+import {
+  ElementsViewComponent,
+  PeriodicElementWIthMatches,
+} from './elements-view.component';
+import { FindMatchesService } from '../services/find-matches.service';
 
 @Component({
   selector: 'app-elements-table',
@@ -17,7 +21,8 @@ import { ElementsViewComponent } from './elements-view.component';
     LoadingComponent,
   ],
   host: { class: 'block overflow-x-auto' },
-  template: `@if (isLoading) {
+  template: ` @let elementsWithMatches = elementsWithMatches$ | async;
+    @if (elementsWithMatches === null) {
       <app-loading />
     } @else {
       <mat-table [dataSource]="elementsWithMatches" class="min-w-[650px]">
@@ -92,10 +97,9 @@ import { ElementsViewComponent } from './elements-view.component';
     }`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ElementsTableComponent
-  extends ElementsViewComponent
-  implements OnInit
-{
+export class ElementsTableComponent extends ElementsViewComponent {
+  private readonly findMatchesService = inject(FindMatchesService);
+
   protected readonly USED_KEYS = [
     'number',
     'name',
@@ -105,44 +109,25 @@ export class ElementsTableComponent
     'atomic_mass',
   ] as const satisfies (keyof PeriodicElement)[];
 
-  ngOnInit(): void {
-    if (this.filterValue$ === undefined) {
-      this.subs.sink = this.elementsService
-        .getAll$()
-        .pipe(
-          map((elements) =>
-            elements.map((element) => ({ element, filterMatches: {} })),
-          ),
-        )
-        .subscribe((elementsWithMatches) => {
-          this.updateElements(elementsWithMatches);
-        });
-    } else {
-      this.subs.sink = this.elementsService
-        .getAll$()
-        .pipe(
-          combineLatestWith(this.filterValue$),
-          map(([elements, filterValue]) => {
-            const elementsWithMatches = elements.map((element) => ({
-              element,
-              filterMatches: this.findMatchesService.findMatches(
-                element,
-                this.USED_KEYS,
-                filterValue,
-              ),
-            }));
+  protected readonly elementsWithMatches$: Observable<
+    PeriodicElementWIthMatches[]
+  > = this.elementsWithFilter$.pipe(
+    map(([elements, filterValue]) => {
+      const elementsWithMatches = elements.map((element) => ({
+        element,
+        filterMatches: this.findMatchesService.findMatches(
+          element,
+          this.USED_KEYS,
+          filterValue,
+        ),
+      }));
 
-            return filterValue === ''
-              ? elementsWithMatches
-              : elementsWithMatches.filter(
-                  (elementWithMatches) =>
-                    Object.keys(elementWithMatches.filterMatches).length > 0,
-                );
-          }),
-        )
-        .subscribe((elementsWithMatches) => {
-          this.updateElements(elementsWithMatches);
-        });
-    }
-  }
+      return filterValue === ''
+        ? elementsWithMatches
+        : elementsWithMatches.filter(
+            (elementWithMatches) =>
+              Object.keys(elementWithMatches.filterMatches).length > 0,
+          );
+    }),
+  );
 }
