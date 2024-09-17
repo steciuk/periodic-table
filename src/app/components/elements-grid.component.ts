@@ -9,37 +9,37 @@ import {
   PeriodicElementWIthMatches,
 } from './elements-view.component';
 import { FindMatchesService } from '../services/find-matches.service';
+import { RxLet } from '@rx-angular/template/let';
 
 @Component({
   selector: 'app-elements-grid',
   standalone: true,
-  imports: [CommonModule, ElementMarkValueMatchComponent, LoadingComponent],
+  imports: [
+    CommonModule,
+    ElementMarkValueMatchComponent,
+    LoadingComponent,
+    RxLet,
+  ],
   host: { class: 'overflow-x-auto block' },
   template: `
-    @let matchData = matchData$ | async;
-    @if (matchData === null) {
-      <app-loading />
-    } @else {
-      <div
-        class="main-grid m-auto grid w-full min-w-[1200px] max-w-[1600px] gap-0.5 py-4"
+    <div
+      class="main-grid m-auto grid w-full min-w-[1200px] max-w-[1600px] gap-0.5 py-4"
+    >
+      <ul
+        class="col-span-8 col-start-4 row-span-3 row-start-1 m-0 grid place-content-center gap-2"
       >
-        <ul
-          class="col-span-8 col-start-4 row-span-3 row-start-1 m-0 grid place-content-center gap-2"
-        >
-          @for (
-            phaseColor of PHASE_COLOR_MAP | keyvalue;
-            track phaseColor.key
-          ) {
-            <li class="flex list-inside list-none items-center gap-1">
-              <div
-                class="h-5 w-12 rounded-sm"
-                [ngStyle]="{ backgroundColor: phaseColor.value }"
-              ></div>
-              -
-              <span>{{ phaseColor.key }}</span>
-            </li>
-          }
-        </ul>
+        @for (phaseColor of PHASE_COLOR_MAP | keyvalue; track phaseColor.key) {
+          <li class="flex list-inside list-none items-center gap-1">
+            <div
+              class="h-5 w-12 rounded-sm"
+              [ngStyle]="{ backgroundColor: phaseColor.value }"
+            ></div>
+            -
+            <span>{{ phaseColor.key }}</span>
+          </li>
+        }
+      </ul>
+      <ng-container *rxLet="matchData$; let matchData; suspense: loading">
         @for (
           elementWithMatches of matchData.elementsWithMatches;
           track elementWithMatches.element.id
@@ -85,8 +85,12 @@ import { FindMatchesService } from '../services/find-matches.service';
             />
           </button>
         }
-      </div>
-    }
+      </ng-container>
+    </div>
+
+    <ng-template #loading>
+      <app-loading />
+    </ng-template>
   `,
   styles: `
     .main-grid {

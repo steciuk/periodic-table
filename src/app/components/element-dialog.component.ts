@@ -9,7 +9,7 @@ import { MatButton } from '@angular/material/button';
 import { ElementInfoCardComponent } from './element-info-card.component';
 import { ElementEditFormComponent } from './element-edit-form.component';
 import { ElementsService } from '../services/elements.service';
-import { AsyncPipe } from '@angular/common';
+import { RxLet } from '@rx-angular/template/let';
 
 @Component({
   selector: 'app-element-details-dialog',
@@ -19,24 +19,27 @@ import { AsyncPipe } from '@angular/common';
     ElementInfoCardComponent,
     MatDialogActions,
     ElementEditFormComponent,
-    AsyncPipe,
+    RxLet,
   ],
   template: `
     <div
       class="grid max-h-screen min-w-[min(560px,_90vw)] grid-rows-[1fr_auto]"
     >
-      @let element = (element$ | async)!;
       <div class="max-h-full overflow-auto">
-        @if (isEditMode) {
-          <app-element-edit-form
-            class="flex"
-            [element]="element"
-            (cancel)="isEditMode = false"
-            (save)="formSaved()"
-          />
-        } @else {
-          <app-element-info-card [element]="element" />
-        }
+        <ng-container *rxLet="element$; let element">
+          @if (!element) {
+            <p class="text-center">Element not found</p>
+          } @else if (isEditMode) {
+            <app-element-edit-form
+              class="flex"
+              [element]="element"
+              (cancel)="isEditMode = false"
+              (save)="formSaved()"
+            />
+          } @else {
+            <app-element-info-card [element]="element" />
+          }
+        </ng-container>
       </div>
       @if (!isEditMode) {
         <mat-dialog-actions class="flex justify-between">

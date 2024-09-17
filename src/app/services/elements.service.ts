@@ -9,6 +9,7 @@ import {
   of,
   switchMap,
   take,
+  tap,
 } from 'rxjs';
 import { LocalStorageService } from './local-storage.service';
 import { ElementsProviderService } from './elements-provider.service';
@@ -50,8 +51,12 @@ export class ElementsService {
           iif(
             () => elements.length === 0,
             // If there are no elements in the database, fetch them from the server
-            this.elementsProvider.getDefaultElements$(),
-            of(elements),
+            this.elementsProvider
+              .getDefaultElements$()
+              .pipe(tap(() => console.log('Loaded elements from server'))),
+            of(elements).pipe(
+              tap(() => console.log('Loaded elements from IndexedDB')),
+            ),
           ),
         ),
         map((elements) => this.elementsToMap(elements)),
@@ -103,6 +108,7 @@ export class ElementsService {
     });
 
     // Keep the IndexedDB in sync with the state
+    // Potentially, we could asynchronously 'put' only the element that is changed via 'updateElement' as we don't expose the state from the service. This way would be more efficient than bulk putting all elements on every change, but for now it doesn't seem necessary.
     register(this.elements$, (elements) => {
       indexedDB.elements.bulkPut(elements);
     });
