@@ -1,10 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { ElementsTableComponent } from './components/elements-table.component';
 import { ElementsService } from './services/elements.service';
-import { ElementsProviderMockService } from './services/elements-provider/elements-provider-mock.service';
-import { ElementsProviderService } from './services/elements-provider/elements-provider.service';
 import { ClearableInputComponent } from './components/clearable-input.component';
-import { distinctUntilChanged, map, merge, startWith, Subject } from 'rxjs';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ElementsGridComponent } from './components/elements-grid.component';
 import { CommonModule } from '@angular/common';
@@ -23,13 +20,6 @@ import { FilterService } from './services/filter.service';
     CommonModule,
     MatButtonModule,
     MatTooltipModule,
-  ],
-  providers: [
-    ElementsService,
-    {
-      provide: ElementsProviderService,
-      useClass: ElementsProviderMockService,
-    },
   ],
   template: `<div class="flex min-h-screen flex-col">
     <header class="mb-8 flex flex-wrap justify-between gap-4 px-4 pt-4">
@@ -71,20 +61,13 @@ export class AppComponent {
   private readonly elementsService = inject(ElementsService);
   private readonly filterService = inject(FilterService);
 
-  private readonly changesDiscarded$ = new Subject<void>();
-  protected readonly areChanges$ = merge(
-    // Real update
-    this.elementsService.getAreChanges$(),
-    // Optimistic update
-    this.changesDiscarded$.pipe(map(() => false)),
-  ).pipe(startWith(false), distinctUntilChanged());
+  protected readonly areChanges$ = this.elementsService.areChanges$;
 
   protected onFilterValueChange(value: string) {
-    this.filterService.setFilterValue(value);
+    this.filterService.setFilter(value);
   }
 
   protected onDiscardChanges() {
     this.elementsService.discardChanges();
-    this.changesDiscarded$.next();
   }
 }

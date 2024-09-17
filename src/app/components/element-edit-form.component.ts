@@ -154,8 +154,8 @@ export class ElementEditFormComponent implements OnInit {
       ...this.elementForm.value,
     } as PeriodicElement;
 
-    this.save.emit(newElement);
-    this.elementsService.update(newElement);
+    this.elementsService.updateElement(newElement);
+    this.save.emit();
   }
 
   private createFormGroup() {

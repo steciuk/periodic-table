@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { rxState } from '@rx-angular/state';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FilterService {
-  protected readonly filterValue$ = new BehaviorSubject<string>('');
+  private readonly state = rxState<{ filter: string }>(({ set }) => {
+    set({ filter: '' });
+  });
 
-  setFilterValue(value: string) {
-    this.filterValue$.next(value);
+  setFilter(value: string) {
+    this.state.set({ filter: value });
   }
 
-  getFilterValue$() {
-    return this.filterValue$.asObservable();
-  }
+  readonly filter$ = this.state.select('filter');
 }
