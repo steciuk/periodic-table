@@ -34,6 +34,9 @@ const ELEMENT_DATA: PeriodicElement[] = [
 
 - As the components library, use [Angular Material](https://material.angular.io/).
 - Use Angular 18.2.2.
+- Data received from the mock should be stored in the application state.
+- Subscription management should be handled by the framework as much as possible. Use `.subscribe()` only when necessary.
+- Use [RxAngular](https://www.rx-angular.io/) for handling observables.
 
 ## Extra features
 In addition to the original requirements, I decided to expand on the task by adding some extra features.
