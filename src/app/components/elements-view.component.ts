@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  Injector,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { combineLatestWith, debounceTime, startWith } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ElementsService } from '../services/elements.service';
@@ -26,24 +21,22 @@ const FILTER_DEBOUNCE_TIME = 2000;
 export abstract class ElementsViewComponent {
   private readonly elementsService = inject(ElementsService);
   private readonly dialog = inject(MatDialog);
-  private readonly injector = inject(Injector);
   protected readonly filterService = inject(FilterService);
 
-  protected readonly filteredValue$ = this.filterService.getFilterValue$().pipe(
+  private readonly filterValue$ = this.filterService.filter$.pipe(
     // Filter after 2 seconds of inactivity
     debounceTime(FILTER_DEBOUNCE_TIME),
     // Do not wait for the first value
     startWith(''),
   );
 
-  protected readonly elementsWithFilter$ = this.elementsService
-    .getAll$()
-    .pipe(combineLatestWith(this.filteredValue$));
+  protected readonly elementsWithFilter$ = this.elementsService.elements$.pipe(
+    combineLatestWith(this.filterValue$),
+  );
 
   protected openDialog(element: PeriodicElement): void {
     this.dialog.open(ElementDialogComponent, {
-      data: element,
-      injector: this.injector,
+      data: element.id,
     });
   }
 }

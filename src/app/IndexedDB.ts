@@ -1,5 +1,5 @@
 import Dexie, { liveQuery, Table } from 'dexie';
-import { PeriodicElement } from '../../types/PeriodicElement';
+import { PeriodicElement } from './types/PeriodicElement';
 import { Observable } from 'rxjs';
 
 class IndexedDB extends Dexie {
@@ -8,7 +8,7 @@ class IndexedDB extends Dexie {
   constructor() {
     super('AppDB');
     this.version(1).stores({
-      elements: '++id',
+      elements: 'id',
     });
   }
 }

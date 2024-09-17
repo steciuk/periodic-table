@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { PeriodicElement } from '../types/PeriodicElement';
 import { map, Observable } from 'rxjs';
-import { CommonModule } from '@angular/common';
 import { ElementMarkValueMatchComponent } from './element-mark-value-match.component';
 import { LoadingComponent } from './loading.component';
 import {
@@ -10,21 +9,22 @@ import {
   PeriodicElementWIthMatches,
 } from './elements-view.component';
 import { FindMatchesService } from '../services/find-matches.service';
+import { RxLet } from '@rx-angular/template/let';
 
 @Component({
   selector: 'app-elements-table',
   standalone: true,
   imports: [
     MatTableModule,
-    CommonModule,
     ElementMarkValueMatchComponent,
     LoadingComponent,
+    RxLet,
   ],
   host: { class: 'block overflow-x-auto' },
-  template: ` @let elementsWithMatches = elementsWithMatches$ | async;
-    @if (elementsWithMatches === null) {
-      <app-loading />
-    } @else {
+  template: `
+    <ng-container
+      *rxLet="elementsWithMatches$; let elementsWithMatches; suspense: loading"
+    >
       <mat-table [dataSource]="elementsWithMatches" class="min-w-[650px]">
         <ng-container matColumnDef="number">
           <mat-header-cell *matHeaderCellDef>Number</mat-header-cell>
@@ -94,7 +94,12 @@ import { FindMatchesService } from '../services/find-matches.service';
           class="cursor-pointer"
         />
       </mat-table>
-    }`,
+    </ng-container>
+
+    <ng-template #loading>
+      <app-loading />
+    </ng-template>
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ElementsTableComponent extends ElementsViewComponent {
